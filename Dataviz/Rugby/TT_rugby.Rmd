@@ -1,0 +1,21 @@
+---
+title: "Rugby"
+author: "Valentine BERTHIER"
+date: "2024-02-17"
+output: html_document
+---
+
+```{r}
+rm(list=ls())
+```
+
+```{r}
+# load dataset ------------------------------------------------------------
+
+rugby <- tidytuesdayR::tt_load('2022-05-24')
+sevens <- tuesdata$sevens
+
+
+str(sevens)
+```
+
