@@ -9,6 +9,12 @@ Click the dropdown arrows to view contributions from different years.
 
 Click here to view contribitions from 2022
 -> rugby 
+
+Commentaires sur le graphique : 
+* élément visuel des poteaux utilisé pour représenter les matchs gagnés : mauvais outil, à portée graphique et suelle, n'apporte pas d'information et trouble même le lecteur car certains poteaux ne font pas la m^me taille (cf. NZ)
+* pas d'échelle 
+* pas de résultat en exergue 
+
 -> erasmus
 Click here to view contribitions from 2021
 
