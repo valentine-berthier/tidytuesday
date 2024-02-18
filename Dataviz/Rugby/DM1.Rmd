@@ -1,0 +1,124 @@
+---
+title: "DM1 Rugby"
+author: "Valentine BERTHIER"
+date: "2024-02-18"
+output: html_document
+---
+
+
+
+```{r}
+rm(list=ls())
+```
+
+
+```{r}
+# Chargement du package qui va nous permettre de récupérer les données diffusées dans le cadre de tidytuesday
+library(tidytuesdayR)
+
+#Autre package utilisés dans la suite du code 
+library(dplyr)
+library(ggplot2)
+
+#library(tidyverse)
+#library(patchwork)
+#library(showtext)
+#font_add_google("Playfair Display")
+#font_add_google("Poppins")
+#showtext_opts(dpi = 320)
+#showtext_auto()
+
+```
+
+```{r}
+# Pour charger le jeu de données qui nous intéresse, il suffit de mentionner la date de diffusion dans la fonction tt_load du package tidytuesdayR
+tuesdata <- tidytuesdayR::tt_load('2022-05-24')
+
+# Afin d'effectuer un graphique sur les mêmes données que celui critiqué, nous ne gardons que la base de données du tournoi 'sevens'
+
+sevens <- tuesdata$sevens
+
+
+```
+
+```{r}
+# Visualisons ce jeu de données
+
+str(sevens)
+colnames(sevens)
+
+# Nous allons nous intéresser aux variables `team_1`, `score_1`, `score_2`,`team_2` et `winner`,`loser`
+
+```
+```{r}
+#On souhaite répondre à la même question que celle du graphe critiqué, c'est à dire : 
+# Quelle a été la performance des 10 équipes du tournois ayant joué le plus de match
+# Analysons nos données
+
+min(sevens$date)
+max(sevens$date)
+
+unique(sevens$tournament) # beaucoup de tournois représentés 
+
+
+
+```
+#Sans regrouper par année
+```{r}
+# on remarque qu'il y a des équipes Néo-zélandaises ayant fait des match sous un autre nom que "New Zealand', on les regroupent toutes sous le même nom 
+sevens <- sevens %>%
+  mutate(winner = case_when(str_detect(winner, "New Zealand") ~ "New Zealand",
+                            TRUE ~ winner))
+
+winners <- sevens %>%
+  group_by(winner)%>%
+  count(winner)%>%
+  rename(team = winner,
+         total_wins = n) %>%
+  ungroup()
+
+losers <- sevens %>%
+  group_by(loser)%>%
+  count(loser)%>%
+  rename(team = loser,
+         total_loss = n) %>%
+  ungroup()
+  
+
+# Calculons le nombre de matchs joués par chaque équipe
+
+
+winlos <- full_join(winners, losers, by = c("team"))
+
+  
+winlos<-winlos%>%
+  mutate(total_games=total_wins+total_loss)%>%
+  arrange(desc(total_games))%>%
+  head(10)
+
+
+percW<-winlos%>%
+  mutate(PW=(total_wins*100)/total_games)%>%
+  arrange(desc(PW))
+
+```
+
+## représentation 
+```{r}
+# Créer une nouvelle variable indiquant si la valeur est la plus grande
+percW <- percW %>%
+  mutate(max_value = ifelse(PW == max(PW), TRUE, FALSE))
+graphe <- percW %>%
+  ggplot(aes(x = reorder(team, PW), y = PW,fill=max_value)) +
+  geom_col() +
+  geom_text(aes(label = paste0(round(PW,1), "%")), vjust = -0.5) +  # Ajouter les valeurs de PW au-dessus des barres
+  geom_abline(slope = 0, intercept = 50, color = 'red',linetype = "dashed")+
+  labs(title = "Proportion de matchs gagnés par les 10 pays ayant effectué le plus de matchs.",subtitle = "Matchs comptabilisés de 1997 à 2022",x="Pays",y="% de victoires")+
+  scale_y_continuous(labels =scales::number_format(suffix=" %"))+  # Ajouter le % sur l'axe des ordonnées
+  scale_fill_manual(values = c("FALSE" = "grey", "TRUE" = "blue"),guide = "none")+
+  theme_minimal()
+
+
+graphe
+
+```
