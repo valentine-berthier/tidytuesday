@@ -103,7 +103,7 @@ percW<-winlos%>%
 
 ```
 
-## représentation 
+## représentation 1
 ```{r}
 # Créer une nouvelle variable indiquant si la valeur est la plus grande
 percW <- percW %>%
@@ -111,14 +111,118 @@ percW <- percW %>%
 graphe <- percW %>%
   ggplot(aes(x = reorder(team, PW), y = PW,fill=max_value)) +
   geom_col() +
-  geom_text(aes(label = paste0(round(PW,1), "%")), vjust = -0.5) +  # Ajouter les valeurs de PW au-dessus des barres
+  geom_text(aes(label = paste0(round(PW,1), "%")), vjust = -1) +  # Ajouter les valeurs de PW au-dessus des barres
   geom_abline(slope = 0, intercept = 50, color = 'red',linetype = "dashed")+
-  labs(title = "Proportion de matchs gagnés par les 10 pays ayant effectué le plus de matchs.",subtitle = "Matchs comptabilisés de 1997 à 2022",x="Pays",y="% de victoires")+
-  scale_y_continuous(labels =scales::number_format(suffix=" %"))+  # Ajouter le % sur l'axe des ordonnées
+  labs(title = "% de matchs gagnés par les 10 pays ayant effectué le plus de matchs.",subtitle = "Matchs comptabilisés de 1997 à 2022. Ordonnés par % croissants",x="Pays",y="% de victoires")+
+  scale_y_continuous(labels =scales::number_format(suffix=" %"),limits=c(0,100))+  # Ajouter le % sur l'axe des ordonnées
   scale_fill_manual(values = c("FALSE" = "grey", "TRUE" = "blue"),guide = "none")+
+  plot_annotation(caption = "@jamie_bio | source: ScrumQueens by way of Jacquie Tran")+
   theme_minimal()
 
 
 graphe
 
+
 ```
+## représentation 2
+```{r}
+# Créer une nouvelle variable indiquant si la valeur est la plus grande
+percW <- percW %>%
+  mutate(max_value = ifelse(PW == max(PW), TRUE, FALSE))
+graphe <- percW %>%
+  ggplot(aes(x = reorder(team, PW), y = PW,fill=max_value)) +
+  geom_col() +
+  geom_text(aes(label = paste0(total_wins, "/",total_games)), vjust = -1) +  # Ajouter les valeurs de PW au-dessus des barres
+  geom_abline(slope = 0, intercept = 50, color = 'red',linetype = "dashed")+
+  labs(title = "% de matchs gagnés par les 10 pays ayant effectué le plus de matchs.",subtitle = "Matchs comptabilisés de 1997 à 2022. Ordonnés par % croissants",x="Pays",y="% de victoires")+
+  scale_y_continuous(labels =scales::number_format(suffix=" %"),limits=c(0,100))+  # Ajouter le % sur l'axe des ordonnées
+  scale_fill_manual(values = c("FALSE" = "grey", "TRUE" = "blue"),guide = "none")+
+  plot_annotation(caption = "@jamie_bio | source: ScrumQueens by way of Jacquie Tran")+
+  theme_minimal()
+
+
+graphe
+
+
+```
+
+## représentation 3
+```{r}
+# Créer une nouvelle variable indiquant si la valeur est la plus grande
+percW <- percW %>%
+  mutate(max_value = ifelse(PW == max(PW), TRUE, FALSE))
+graphe <- percW %>%
+  ggplot(aes(x = reorder(team, total_games,decreasing = TRUE), y = PW,fill=max_value)) +
+  geom_col() +
+  geom_text(aes(label = paste0(total_wins, "/",total_games)), vjust = -1) +  # Ajouter les valeurs de PW au-dessus des barres
+  geom_abline(slope = 0, intercept = 50, color = 'red',linetype = "dashed")+
+  labs(title = "% de matchs gagnés par les 10 pays ayant effectué le plus de matchs.",subtitle = "Matchs comptabilisés de 1997 à 2022. Ordonnés par % décroissants de matchs joués.",x="Pays",y="% de victoires")+
+  scale_y_continuous(labels =scales::number_format(suffix=" %"),limits=c(0,100))+  # Ajouter le % sur l'axe des ordonnées
+  scale_fill_manual(values = c("FALSE" = "grey", "TRUE" = "blue"),guide = "none")+
+  plot_annotation(caption = "@jamie_bio | source: ScrumQueens by way of Jacquie Tran")+
+  theme_minimal()
+
+
+graphe
+
+
+```
+
+
+
+
+
+#représentation 4 
+```{r}
+# Créer une nouvelle variable indiquant si la valeur est la plus grande
+percW <- percW %>%
+  mutate(max_value = ifelse(PW == max(PW), TRUE, FALSE))
+
+# Couleurs en fonction du pays 
+#custom_colors<-c("000000","Aus","red",'blue','0C0B5A','FFFFFF',)
+
+graphe <- percW %>%
+  ggplot(aes(x = reorder(team, total_games,decreasing = TRUE), y = PW,fill=team)) +
+  geom_col() +
+  geom_text(aes(label = paste0(total_wins, "/",total_games)), vjust = -1) +  # Ajouter les valeurs de PW au-dessus des barres
+  geom_abline(slope = 0, intercept = 50, color = 'red',linetype = "dashed")+
+  labs(title = "% de matchs gagnés par les 10 pays ayant effectué le plus de matchs.",subtitle = "Matchs comptabilisés de 1997 à 2022. Ordonnés par % décroissants de matchs joués.",x="Pays",y="% de victoires")+
+  scale_y_continuous(labels =scales::number_format(suffix=" %"),limits=c(0,100))+  # Ajouter le % sur l'axe des ordonnées
+  scale_fill_discrete()+
+  plot_annotation(caption = "@jamie_bio | source: ScrumQueens by way of Jacquie Tran")+
+  theme_minimal()
+
+
+graphe
+
+#scale_fill_manual(values = custom_colors)
+```
+#représentation 5
+```{r}
+# Créer une nouvelle variable indiquant si la valeur est la plus grande
+percW <- percW %>%
+  mutate(max_value = ifelse(PW == max(PW), TRUE, FALSE))
+
+# Couleurs en fonction du pays 
+#custom_colors<-c("000000","Aus","red",'blue','0C0B5A','FFFFFF',)
+
+graphe <- percW %>%
+  ggplot(aes(x = reorder(team, total_games,decreasing = TRUE), y = PW)) +
+  geom_col(fill='grey') +
+  geom_text(aes(label = paste0(total_wins, "/",total_games)), vjust = -1) +  # Ajouter les valeurs de PW au-dessus des barres
+  geom_abline(slope = 0, intercept = 50, color = 'red',linetype = "dashed")+
+  labs(title = "% de matchs gagnés par les 10 pays ayant effectué le plus de matchs.",subtitle = "Matchs comptabilisés de 1997 à 2022. Ordonnés par % décroissants de matchs joués.",x="Pays",y="% de victoires")+
+  scale_y_continuous(labels =scales::number_format(suffix=" %"),limits=c(0,100))+
+  plot_annotation(caption = "@jamie_bio | source: ScrumQueens by way of Jacquie Tran")+
+  theme_minimal()
+
+
+graphe
+
+#scale_fill_manual(values = custom_colors)
+```
+
+
+
+Justifier le fait de retirer les chiffres brut au profit des proportions
+Demander ce qu'en pense le prof pour la couleur

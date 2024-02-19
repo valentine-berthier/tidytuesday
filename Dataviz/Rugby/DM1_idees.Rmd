@@ -57,7 +57,7 @@ str(sevens)
 min(sevens$date)
 max(sevens$date)
 
-unique(sevens$tournament) # beaucoup de tournois représentés 
+#unique(sevens$tournament) # beaucoup de tournois représentés 
 
 # on remarque qu'il y a des équipes Néo-zélandaises ayant fait des match sous un autre nom que "New Zealand', on les regroupent toutes sous le même nom 
 sevens <- sevens %>%
@@ -168,15 +168,52 @@ final_perc<-final%>%
 ```
 ## Représentation 
 ```{r}
-final%>%
-  ggplot(aes(x=annee,y=total_wins,fill=team))+
-  geom_point()
+# Définir une palette de couleurs personnalisée pour chaque observation de team
+custom_colors <- rainbow(length(unique(final$team)))
+
+# Créer le graphique en utilisant une couleur différente pour chaque observation de team
+graphe <- final %>%
+  ggplot(aes(x = annee, y = total_wins, fill = team,group=team))+
+  geom_point(shape = 21, size = 3, color = "white") +  # Définir la forme et la taille des points
+  geom_line()+
+  scale_fill_manual(values = custom_colors) +  # Utiliser la palette de couleurs personnalisée
+  labs(
+    title = "Total des victoires par année",
+    x = "Année",
+    y = "Total des victoires",
+    fill = "Équipe"  # Légende pour la variable team
+  ) +
+  theme_minimal()
+
+print(graphe)
 
 
 # changer la couleur des points en fonction du pays, 
 # ajouter une ligne reliant les points pour voir l'evolution
 
 ```
+```{r}
+# Définir une palette de couleurs personnalisée pour chaque observation de team
+custom_colors <- rainbow(length(unique(final$team)))
+
+# Créer le graphique en utilisant une couleur différente pour chaque observation de team
+graphe <- final %>%
+  ggplot(aes(x = annee, y = total_wins, color = team, group = team)) +
+  geom_point(shape = 21, size = 3, fill = "white") +  # Définir la forme et la taille des points
+  geom_line() +  # Relier les points de chaque équipe
+  scale_color_manual(values = custom_colors) +  # Utiliser la palette de couleurs personnalisée
+  labs(
+    title = "Total des victoires par année",
+    x = "Année",
+    y = "Total des victoires",
+    color = "Équipe"  # Légende pour la variable team
+  ) +
+  theme_minimal()
+
+print(graphe)
+
+```
+
 
 
 
