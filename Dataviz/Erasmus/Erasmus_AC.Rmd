@@ -1,0 +1,170 @@
+---
+title: "Erasmus AC"
+author: "Valentine BERTHIER"
+date: "2024-02-20"
+output: html_document
+---
+---
+title: "EU-Student-Mobility"
+author: "Yasser Mushtaq"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+  theme: paper
+highlight: kate
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, fig.showtext = T)
+library(tidyverse)
+library(viridis)
+library(ggtext)
+library(countrycode)
+library(maps)
+extrafont::loadfonts()
+
+```
+
+```{r}
+# load data
+tuesdata <- tidytuesdayR::tt_load('2022-03-08')
+erasmus <- tuesdata$erasmus
+head(erasmus)
+```
+
+```{r}
+# make lookup table to match codes to names (needed for joins)
+country_codes <- union(erasmus$sending_country_code, erasmus$receiving_country_code)
+  
+country_codes <- str_replace_all(country_codes, c("UK" = "GB", "EL" = "GR")) # change two codes to match with countrycode iso2c 
+
+country_codes # UK to GB, EL to GR, XK is Kosovo
+
+country_code_lookup <- tibble(country_code = country_codes, country_name = countrycode(country_codes, origin = "iso2c", destination = "country.name"))
+
+# convert codes back to match Erasmus data...
+country_code_lookup <- country_code_lookup %>%
+  mutate(country_code = str_replace_all(country_code, c("GB" = "UK", "GR" = "EL")),
+         country_name = replace_na(country_name, "Kosovo"), # this country had no match
+         country_name = str_replace(country_name, "United Kingdom", "UK")) # to match other datasets
+
+erasmus %>%
+  filter(sending_country_code == "XK")
+
+country_code_lookup
+```
+
+```{r}
+# tidy data to aggregate total participants by sending and receiving countries
+# reveals most popular relationships between nations
+erasmus %>%
+  group_by(sending_country_code, receiving_country_code) %>%
+  summarise(
+    total = sum(participants),
+    .groups = 'drop'
+  ) %>%
+  filter(sending_country_code != receiving_country_code) %>%
+  # joins to get country names
+  inner_join(country_code_lookup, by = c("sending_country_code" = "country_code")) %>%
+  inner_join(country_code_lookup, by = c("receiving_country_code" = "country_code"), suffix = c(".sending", ".receiving")) %>%
+  select(sending_country_code, country_name.sending, receiving_country_code, country_name.receiving, total) %>%
+  arrange(desc(total)) -> external_transfer
+
+external_transfer
+```
+
+
+
+```{r}
+
+unique_country_list <- union(external_transfer$country_name.sending, external_transfer$country_name.receiving)
+unique_country_list
+
+# get world map data used to create map visual with geom_map. filter for those nations in data only
+filtered_map <- map_data("world") %>%
+  filter(region %in% unique_country_list)
+
+# get long/lat for single point in each country, used for arrows/lines on map
+long_lat_lookup <- world.cities %>% filter(capital == 1)
+long_lat_lookup <- long_lat_lookup %>%
+  mutate(
+    country.etc = str_replace(country.etc, "Bosnia and Herzegovina", "Bosnia & Herzegovina")
+  )
+# add Kosovo (not needed in visual but for completeness)
+long_lat_lookup <- long_lat_lookup %>% add_row(tibble_row(name = "Pristina", country.etc = "Kosovo", pop = 210000, lat = 42.67, long = 21.16, capital = 1))
+
+# edits so joins have no major omissions
+# note - # need to correct Czech Republic and Bosnia (done above) and maybe kosovo (filter for greater than 20 would remove this)  
+external_transfer <- external_transfer %>%
+  mutate(
+    country_name.sending = str_replace_all(country_name.sending, "Czechia", "Czech Republic"),
+    country_name.receiving = str_replace_all(country_name.receiving, "Czechia", "Czech Republic")
+  )
+
+# add long lat to data
+external_transfer_plot <- external_transfer %>%
+  left_join(select(long_lat_lookup, long, lat, country.etc), by = c("country_name.sending" = "country.etc")) %>%
+  left_join(select(long_lat_lookup, long, lat, country.etc), by = c("country_name.receiving" = "country.etc"), suffix = c(".sending", ".receiving"))
+
+# final dataset to plot
+external_transfer_plot                  
+
+```
+
+```{r, fig.showtext=TRUE}
+
+p <- ggplot(data = filtered_map, aes(x=long, y=lat)) +
+  geom_map(aes(map_id=region),map = filtered_map, color="black", fill="#7f7f7f", size=0.1, alpha=0.05) +
+  geom_curve(data = external_transfer_plot[11:100,],
+             aes(x = long.sending, y = lat.sending, yend = lat.receiving, xend = long.receiving), size = 0.05, color = "gray1", alpha = 0.9) +
+  geom_curve(data = external_transfer_plot[1:10,],
+             aes(x = long.sending, y = lat.sending, yend = lat.receiving, xend = long.receiving, color = total),
+             size = 1,
+             arrow = arrow(length = unit(1.5, "mm"),
+                  type = "closed")) +
+  coord_cartesian(xlim = c(-25, 50), ylim = c(39, 65)) +
+  labs(title = "Mapping <span style='color:#4f1f10'>**Erasmus**</span> Mobility For Students by **Country Relationships**",
+       subtitle = "Highlighting the top 10 country relationships by total participants",
+       caption = "Coloured arrows indicate **top 10** most frequent exchanges between countires<br>Grey lines indicate **remaining top 100**<br>
+                  <i>Points on map indicative of countries only, not cities</i>") +
+  annotate(
+    geom = "richtext",
+    x = -10,
+    y = 48,
+    label = "The top two country<br>relationships<br>involved France as<br>the recipient<br>
+            **Germany >>> France (306)**<br>
+            **Italy >>> France (268)**",
+    color = "#4f1f10", family = "Fredoka",
+    fill = NA, label.color = NA, size = 3
+  ) +
+  theme(
+    axis.title = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank(),
+    panel.background = element_rect(fill = "white"),
+    text = element_text(family = "Fredoka"),
+    #legend.position = "bottom",
+    plot.title = element_markdown(size = 14),
+    #plot.title.position = "plot",
+    plot.subtitle = element_markdown(size = 12),
+    plot.caption = element_markdown(size = 10),
+    legend.position = c(0.12, 0.08),
+    legend.direction = "horizontal"
+  ) +
+  scale_fill_viridis(aesthetics = c("point_color", "fill", "color"), direction = -1) +
+  guides(color = guide_colorbar(barwidth = 10, barheight = 0.5, title.position = "top")) +
+  labs(color = "Total Number of Participants")
+#         size = guide_legend(title.position = "top"))
+  
+p
+
+
+```
+
+```{r, fig.showtext=T}
+ggsave(p, filename = "Erasmus-Mobility-v2.png",
+       width = 10.5, height = 8, device = ragg::agg_png, dpi = 300)
+```

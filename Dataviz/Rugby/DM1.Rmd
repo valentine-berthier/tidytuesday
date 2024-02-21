@@ -19,9 +19,10 @@ library(tidytuesdayR)
 #Autre package utilisés dans la suite du code 
 library(dplyr)
 library(ggplot2)
+library(stringr)
 
-#library(tidyverse)
-#library(patchwork)
+library(tidyverse)
+library(patchwork)
 #library(showtext)
 #font_add_google("Playfair Display")
 #font_add_google("Poppins")
@@ -117,7 +118,7 @@ graphe <- percW %>%
   scale_y_continuous(labels =scales::number_format(suffix=" %"),limits=c(0,100))+  # Ajouter le % sur l'axe des ordonnées
   scale_fill_manual(values = c("FALSE" = "grey", "TRUE" = "blue"),guide = "none")+
   plot_annotation(caption = "@jamie_bio | source: ScrumQueens by way of Jacquie Tran")+
-  theme_minimal()
+  theme_test()
 
 
 graphe
@@ -221,6 +222,75 @@ graphe
 
 #scale_fill_manual(values = custom_colors)
 ```
+
+
+#representation 6 
+```{r}
+# Créer une nouvelle variable indiquant si la valeur est la plus grande
+percW <- percW %>%
+  mutate(max_value = ifelse(PW == max(PW), TRUE, FALSE))
+graphe <- percW %>%
+  ggplot(aes(x = reorder(team, PW), y = PW,fill=total_games)) +
+  geom_col() +
+  geom_text(aes(label = paste0(round(PW,1), "%")), vjust = -1) +  # Ajouter les valeurs de PW au-dessus des barres
+  geom_abline(slope = 0, intercept = 50, color = 'red',linetype = "dashed")+
+  labs(title = "% de matchs gagnés par les 10 pays ayant effectué le plus de matchs.",subtitle = "Matchs comptabilisés de 1997 à 2022. Ordonnés par % croissants",x="Pays",y="% de victoires")+
+  scale_y_continuous(labels =scales::number_format(suffix=" %"),limits=c(0,100))+  # Ajouter le % sur l'axe des ordonnées
+  #scale_fill_manual(values = c("FALSE" = "grey", "TRUE" = "blue"),guide = "none")+
+  scale_fill_gradient(low = "grey", high = "black") +  # Utiliser une échelle de couleur gradient
+  plot_annotation(caption = "@jamie_bio | source: ScrumQueens by way of Jacquie Tran")+
+  theme_test()
+
+
+graphe
+```
+
+## représentation 7
+```{r}
+# Créer une nouvelle variable indiquant si la valeur est la plus grande
+seuil<-475
+percW <- percW %>%
+  mutate(max_value = ifelse(PW == max(PW), TRUE, FALSE))
+graphe <- percW %>%
+  ggplot(aes(x = reorder(team, PW), y = PW,fill=total_games)) +
+  geom_col() +
+  geom_text(aes(label = paste0(round(PW,1), "%")), vjust = -1) +  # Ajouter les valeurs de PW au-dessus des barres
+  geom_abline(slope = 0, intercept = 50, color = 'red',linetype = "dashed")+
+  labs(title = "% de matchs gagnés par les 10 pays ayant effectué le plus de matchs.",subtitle = "Matchs comptabilisés de 1997 à 2022. Ordonnés par % croissants",x="Pays",y="% de victoires")+
+  scale_y_continuous(labels =scales::number_format(suffix=" %"),limits=c(0,100))+  # Ajouter le % sur l'axe des ordonnées
+  #scale_fill_manual(values = c("FALSE" = "grey", "TRUE" = "blue"),guide = "none")+
+  scale_fill_gradient2(low = "red", mid = "white", high = "green", midpoint = seuil)+
+  plot_annotation(caption = "@jamie_bio | source: ScrumQueens by way of Jacquie Tran")+
+  theme_test()
+
+
+graphe
+```
+
+## représentation 7
+```{r}
+# Créer une nouvelle variable indiquant si la valeur est la plus grande
+seuil<-50
+percW <- percW %>%
+  mutate(max_value = ifelse(PW == max(PW), TRUE, FALSE))
+graphe <- percW %>%
+  ggplot(aes(x = reorder(team, total_games,decreasing = TRUE), y = PW,fill=PW)) +
+  geom_col() +
+  geom_text(aes(label = paste0(round(PW,1), "%")), vjust = -1) +  # Ajouter les valeurs de PW au-dessus des barres
+  geom_abline(slope = 0, intercept = 50, color = 'red',linetype = "dashed")+
+  labs(title = "% de matchs gagnés par les 10 pays ayant effectué le plus de matchs.",subtitle = "Matchs comptabilisés de 1997 à 2022. Ordonnés par % croissants",x="Pays",y="% de victoires")+
+  scale_y_continuous(labels =scales::number_format(suffix=" %"),limits=c(0,100))+  # Ajouter le % sur l'axe des ordonnées
+  #scale_fill_manual(values = c("FALSE" = "grey", "TRUE" = "blue"),guide = "none")+
+  scale_fill_gradient2(low = "red", mid = "white", high = "darkgreen", midpoint = seuil)+
+  plot_annotation(caption = "@jamie_bio | source: ScrumQueens by way of Jacquie Tran")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  theme_test()
+
+
+graphe
+```
+
+
 
 
 
